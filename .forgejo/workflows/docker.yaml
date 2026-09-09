@@ -1,0 +1,41 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+    branches: [main]
+  release:
+    types:
+      - published
+
+jobs:
+  should-push:
+    runs-on: ubuntu-latest
+    outputs:
+      should_push: ${{ steps.push_check.outputs.should_push }}
+    steps:
+      - id: push_check
+        run: |
+          if [ "${{ github.event_name }}" = "release" ] && [ "${{ github.event.action }}" = "published" ]; then
+            echo "should_push=true"
+            echo "should_push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_push=false"
+            echo "should_push=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Builds on every push/PR (smoke test); pushes only on release.
+  # RELEASE_TAG pins the image to the CUDA version (tag encoding the
+  # toolkit, not the repo release), so the runner config can point at a
+  # stable: <registry>/<org>/docker-image-collection/cuda-job:cuda-13.3
+  publish-cuda-job:
+    needs: [should-push]
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    with:
+      DOCKERFILE: "ci/cuda-job.Dockerfile"
+      PUSH: ${{ needs.should-push.outputs.should_push }}
+      PUSH_LATEST: false
+      RELEASE_TAG: "cuda-13.3"
+    secrets:
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
