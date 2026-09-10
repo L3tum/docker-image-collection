@@ -26,9 +26,9 @@ jobs:
           fi
 
   # Builds on every push/PR (smoke test); pushes only on release.
-  # RELEASE_TAG pins the image to the CUDA version (tag encoding the
-  # toolkit, not the repo release), so the runner config can point at a
-  # stable: <registry>/<org>/docker-image-collection/cuda-job:cuda-13.3
+  # RELEASE_TAG is the stable "current CUDA" tag (encodes the toolkit, not
+  # the repo release), so the runner config can point at a
+  # stable: <registry>/<org>/docker-image-collection/cuda-job:cuda-13.4-latest
   publish-cuda-job:
     needs: [should-push]
     uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
@@ -36,6 +36,37 @@ jobs:
       DOCKERFILE: "ci/cuda-job.Dockerfile"
       PUSH: ${{ needs.should-push.outputs.should_push }}
       PUSH_LATEST: false
-      RELEASE_TAG: "cuda-13.3"
+      RELEASE_TAG: "cuda-13.4-latest"
+    secrets:
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
+
+  # Secondary tag: pins the same image to the repo release version
+  # (e.g. release 1.0.0 -> cuda-13.4-1.0.0). Release-only, so it does not
+  # add a second build to every push/PR. (This rebuilds the image a second
+  # time on release; the shared reusable workflow only tags one tag per run.)
+  compute-release-tag:
+    needs: [should-push]
+    if: needs.should-push.outputs.should_push == 'true'
+    runs-on: ubuntu-latest
+    outputs:
+      secondary_tag: ${{ steps.calc.outputs.secondary_tag }}
+    steps:
+      - id: calc
+        shell: bash
+        run: |
+          ref="${{ github.ref_name }}"
+          # strip a leading "v" so v1.0.0 and 1.0.0 both yield 1.0.0
+          ver="${ref#v}"
+          echo "secondary_tag=cuda-13.4-${ver}" >> "$GITHUB_OUTPUT"
+
+  publish-cuda-job-release:
+    needs: [should-push, compute-release-tag]
+    if: needs.should-push.outputs.should_push == 'true'
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    with:
+      DOCKERFILE: "ci/cuda-job.Dockerfile"
+      PUSH: true
+      PUSH_LATEST: false
+      RELEASE_TAG: ${{ needs.compute-release-tag.outputs.secondary_tag }}
     secrets:
       PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}

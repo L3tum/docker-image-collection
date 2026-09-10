@@ -7,7 +7,7 @@
 # unchanged), git, curl, ca-certificates. The only delta is what that base
 # lacks for the GPU job:
 #
-#   CUDA 13.3 toolkit (nvcc + dev libraries) — installed from NVIDIA's apt
+#   CUDA 13.4 toolkit (nvcc + dev libraries) — installed from NVIDIA's apt
 #         repo, the same source the stock nvidia/cuda images install from.
 #         Driver side (nvidia-smi, libcuda) is NOT in the image: the nvidia
 #         container runtime injects it at job start (--gpus=all at runner
@@ -21,15 +21,20 @@
 # place of actions/checkout.
 #
 # Build + push: handled by .forgejo/workflows/docker.yaml in this repo
-# (builds on PRs, pushes tag `cuda-13.3` on release). Manual equivalent:
+# (builds on PRs, pushes on release). On release the image is pushed under
+# two tags:
+#   cuda-13.4-latest    — stable "current CUDA" tag; point the runner here
+#   cuda-13.4-<version> — pins the image to the repo release version, e.g.
+#                         cuda-13.4-1.0.0 for release 1.0.0
+# Manual equivalent (stable tag):
 #
 #   docker build -f ci/cuda-job.Dockerfile \
-#     -t <registry>/<org>/docker-image-collection/cuda-job:cuda-13.3 .
-#   docker push <registry>/<org>/docker-image-collection/cuda-job:cuda-13.3
+#     -t <registry>/<org>/docker-image-collection/cuda-job:cuda-13.4-latest .
+#   docker push <registry>/<org>/docker-image-collection/cuda-job:cuda-13.4-latest
 #
 # then point the runner's `cuda` label at the pushed image:
 #
-#   cuda:docker://<registry>/<org>/docker-image-collection/cuda-job:cuda-13.3
+#   cuda:docker://<registry>/<org>/docker-image-collection/cuda-job:cuda-13.4-latest
 #
 # (Registry-less alternative on a single box:
 #   docker save ... | docker -H tcp://forgejo-runner-dind:2375 load ...
@@ -40,18 +45,18 @@ FROM docker.gitea.com/runner-images:ubuntu-latest
 
 ENV DEBIAN_FRONTEND=noninteractive
 
-# CUDA 13.3 toolkit from NVIDIA's apt repo. `cuda-toolkit-13-3` = nvcc +
+# CUDA 13.4 toolkit from NVIDIA's apt repo. `cuda-toolkit-13-4` = nvcc +
 # all dev libraries, installed under /usr/local/cuda (nvcc at
 # /usr/local/cuda/bin). If the final image is too big, the lean alternative
-# is: cuda-nvcc-13-3 cuda-cudart-dev-13-3 cuda-nvml-dev-13-3
-# libcublas-dev-13-3 libnccl-dev cuda-nsight-compute-13-3
+# is: cuda-nvcc-13-4 cuda-cudart-dev-13-4 cuda-nvml-dev-13-4
+# libcublas-dev-13-4 libnccl-dev cuda-nsight-compute-13-4
 RUN apt-get update \
     && apt-get install -y --no-install-recommends wget gnupg \
     && wget -qO cuda-keyring.deb \
          https://developer.download.nvidia.com/compute/cuda/repos/ubuntu2404/x86_64/cuda-keyring_1.1-1_all.deb \
     && dpkg -i cuda-keyring.deb && rm cuda-keyring.deb \
     && apt-get update \
-    && apt-get install -y --no-install-recommends cuda-toolkit-13-3 \
+    && apt-get install -y --no-install-recommends cuda-toolkit-13-4 \
     && rm -rf /var/lib/apt/lists/*
 
 # CUDA toolkit env: same values the stock nvidia/cuda images set.
