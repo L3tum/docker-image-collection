@@ -1,0 +1,45 @@
+name: Build and Push SGLang Image
+
+on:
+  release:
+    types:
+      - published
+
+jobs:
+  should-push:
+    runs-on: ubuntu-latest
+    outputs:
+      should_push: ${{ steps.push_check.outputs.should_push }}
+    steps:
+      - id: push_check
+        run: |
+          if [ "${{ github.event_name }}" = "release" ] && [ "${{ github.event.action }}" = "published" ]; then
+            echo "should_push=true"
+            echo "should_push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_push=false"
+            echo "should_push=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Release-only trigger (unlike docker.yaml): the base image is a multi-GB
+  # LLM runtime image and the only delta is one pip layer, so building on
+  # every push/PR would burn runner time without any smoke-test value.
+  # IMAGE_NAME is deliberately NOT set (single-segment image names were
+  # rejected by the registry): the image is pushed under the lowercased
+  # repo name and disambiguated by the "sglang-" tag prefix, e.g.
+  # <registry>/l3tum/docker-image-collection:sglang-v0.5.19.
+  # PUSH_LATEST=false keeps :latest free for the other images in this repo.
+  publish:
+    needs: [should-push]
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    with:
+      PUSH_LATEST: false
+      RELEASE_TAG: "sglang-v0.5.19"
+      SUBDIRECTORY: "sglang"
+      PUSH: ${{ needs.should-push.outputs.should_push }}
+      BUILD_ARGS_JSON: |
+        {
+          "SGLANG_VERSION": "v0.5.19-runtime"
+        }
+    secrets:
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
