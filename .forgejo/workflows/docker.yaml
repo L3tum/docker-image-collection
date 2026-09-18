@@ -31,7 +31,7 @@ jobs:
   # stable: <registry>/<org>/docker-image-collection/cuda-job:cuda-13.4-latest
   publish-cuda-job:
     needs: [should-push]
-    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@88a5b7b44c7b545af71e3757fdf6bc886ca7cff7 # main
     with:
       DOCKERFILE: "ci/cuda-job.Dockerfile"
       PUSH: ${{ needs.should-push.outputs.should_push }}
@@ -66,7 +66,7 @@ jobs:
   publish-cuda-job-release:
     needs: [should-push, compute-release-tag]
     if: needs.should-push.outputs.should_push == 'true'
-    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@88a5b7b44c7b545af71e3757fdf6bc886ca7cff7 # main
     with:
       DOCKERFILE: "ci/cuda-job.Dockerfile"
       PUSH: true

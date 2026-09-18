@@ -31,7 +31,7 @@ jobs:
   # PUSH_LATEST=false keeps :latest free for the other images in this repo.
   publish:
     needs: [should-push]
-    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@88a5b7b44c7b545af71e3757fdf6bc886ca7cff7 # main
     with:
       PUSH_LATEST: false
       RELEASE_TAG: "sglang-v0.5.19"
