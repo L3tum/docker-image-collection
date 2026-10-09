@@ -41,7 +41,7 @@
 #  This works because container.force_pull defaults to false, so dind reuses
 #  the preloaded image. A registry is nicer for rebuilds.)
 
-FROM docker.gitea.com/runner-images:ubuntu-latest
+FROM docker.gitea.com/runner-images:ubuntu-latest@sha256:0e62e56b382ebf485bff1e51a05cbe27c708545a2e91425467fd31eb3e249521
 
 ENV DEBIAN_FRONTEND=noninteractive
 
