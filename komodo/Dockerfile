@@ -26,7 +26,7 @@
 # Upgrade path: when upstream bumps :2, re-run the same build command.
 # =============================================================================
 
-FROM ghcr.mortimer.website/moghtech/komodo-core:2
+FROM ghcr.mortimer.website/moghtech/komodo-core:2.3.4
 
 # Inherited from the base image; set explicitly so the cache lands in the
 # right place even if a future official image drops this ENV.
