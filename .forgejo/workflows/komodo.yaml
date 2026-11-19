@@ -1,0 +1,41 @@
+name: Build and Push Docker Image
+
+on:
+  push:
+    branches: [master]
+  pull_request:
+    branches: [master]
+  release:
+    types:
+      - published
+
+jobs:
+  should-push:
+    runs-on: ubuntu-latest
+    outputs:
+      should_push: ${{ steps.push_check.outputs.should_push }}
+    steps:
+      - id: push_check
+        run: |
+          if [ "${{ github.event_name }}" = "release" ] && [ "${{ github.event.action }}" = "published" ]; then
+            echo "should_push=true"
+            echo "should_push=true" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_push=false"
+            echo "should_push=false" >> "$GITHUB_OUTPUT"
+          fi
+
+  # Builds on every push/PR (smoke test); pushes only on release.
+  # RELEASE_TAG is the stable "current CUDA" tag (encodes the toolkit, not
+  # the repo release), so the runner config can point at a
+  # stable: <registry>/<org>/docker-image-collection/cuda-job:cuda-13.4-latest
+  publish-komodo-job:
+    needs: [should-push]
+    uses: l3tum/reusable-workflows/.github/workflows/publish-forgejo.yml@main
+    with:
+      DOCKERFILE: "komodo/Dockerfile"
+      PUSH: ${{ needs.should-push.outputs.should_push }}
+      PUSH_LATEST: false
+      RELEASE_TAG: "komodo-2-latest"
+    secrets:
+      PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
