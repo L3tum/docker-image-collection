@@ -36,6 +36,6 @@ jobs:
       DOCKERFILE: "komodo/Dockerfile"
       PUSH: ${{ needs.should-push.outputs.should_push }}
       PUSH_LATEST: false
-      RELEASE_TAG: "komodo-2-latest"
+      RELEASE_TAG: "komodo-2.3.4-latest"
     secrets:
       PACKAGE_TOKEN: ${{ secrets.PACKAGE_TOKEN }}
