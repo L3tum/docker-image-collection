@@ -1,4 +1,4 @@
-# syntax=docker/dockerfile:1
+# syntax=docker/dockerfile:1@sha256:572cebbc2b15e6f84c077742952674889cb63cd5e9b80abdffcbe587b6f19183
 
 # =============================================================================
 # Komodo Core - offline action cache overlay
@@ -26,7 +26,7 @@
 # Upgrade path: when upstream bumps :2, re-run the same build command.
 # =============================================================================
 
-FROM ghcr.mortimer.website/moghtech/komodo-core:2.3.4
+FROM ghcr.mortimer.website/moghtech/komodo-core:2.3.4@sha256:91b2afd7b3bb2abea0ebd3046d65ec457eb1f3d505868d1d60cb0f8562490ef9
 
 # Inherited from the base image; set explicitly so the cache lands in the
 # right place even if a future official image drops this ENV.
