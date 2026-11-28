@@ -3,8 +3,14 @@ name: Build and Push Docker Image
 on:
   push:
     branches: [master]
+    paths:
+      - 'basalt/**'
+      - '.forgejo/workflows/basalt.yml'
   pull_request:
     branches: [master]
+    paths:
+      - 'basalt/**'
+      - '.forgejo/workflows/basalt.yml'
   release:
     types:
       - published
