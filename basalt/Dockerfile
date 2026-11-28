@@ -1,4 +1,4 @@
-FROM nvidia/cuda:13.0-runtime-ubuntu24.04
+FROM nvidia/cuda:13.4.3-runtime-ubuntu24.04
 
 ARG BASALT_VERSION=v0.5.7
 ENV PATH=/opt/basalt-${BASALT_VERSION}-linux-x64/bin:$PATH
